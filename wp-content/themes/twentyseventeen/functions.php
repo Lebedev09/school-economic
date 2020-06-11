@@ -665,3 +665,150 @@ require get_parent_theme_file_path( '/inc/customizer.php' );
  */
 require get_parent_theme_file_path( '/inc/icon-functions.php' );
 
+function test(){
+    add_menu_page(
+        __('Высшая школа экономики'),
+        __('Form'),
+        'edit_themes',
+        'form',
+        'text_form',
+        '',
+        ''
+    );
+    add_submenu_page(
+        'form',
+        'Test', 
+        'Test',
+        'edit_themes', 
+        'test',
+        'Donations_Log' 
+    );
+    
+    
+}
+add_action('admin_menu', 'test');
+
+$users = $wpdb->get_results("SELECT * FROM users"); 
+global $users;
+
+function text_form(){ ?>
+
+<div class="form-style-6">
+    <h1>Для связи с нами</h1>
+    <form action="" method="post">
+        <input type="text" name="last_name" value='<?php if(!empty($_POST['last_name'])){ echo $_POST['last_name']; } ?>' placeholder="Введите фамилию" required>
+        <input type="text" name="name" value='<?php if(!empty($_POST['name'])){ echo $_POST['name']; } ?>' placeholder="Введите имя" required>
+        <input type="text" name="patronymic" value='<?php if(!empty($_POST['patronymic'])){ echo $_POST['patronymic']; } ?>' placeholder="Введите отчество" required>
+        <hr>
+        <p class='text'>Контактная информация</p>
+        <input type="text"  name="phone" value='<?php if(!empty($_POST['phone'])){ echo $_POST['phone']; } ?>' class="phone" placeholder="Введите ваш номер телефона" required>
+        <input type="text" id='email' value='<?php if(!empty($_POST['email'])){ echo $_POST['email']; } ?>'  name="email" placeholder="Введите ваш email" required>
+        <hr>
+        <p class="text">Дата и время встречи</p>
+        <input type="date" value='<?php if(!empty($_POST['date'])){ echo $_POST['date']; } ?>' min="<?php echo date("Y-m-d");?>" name="date" required>
+        <input type="time" value='<?php if(!empty($_POST['time'])){ echo $_POST['time']; } ?>' name="time" required>
+        <input type="submit">
+    </form>
+</div>
+
+<div class="container">
+    <table class="table table-striped w-auto">
+
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Отчество</th>
+            <th>Телефон</th>
+            <th>Email</th>
+            <th>Дата</th>
+            <th>Время</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <?php foreach($GLOBALS['users'] as $user) { ?>
+        <tr>
+        <td>
+        <?php echo $user->id?>
+        </td>
+        <td>
+        <?php echo $user->last_name?>
+        </td>
+        <td>
+        <?php echo $user->name?>
+        </td>
+        <td>
+        <?php echo $user->patronymic?>
+        </td>
+        <td>
+        <?php echo $user->phone?>
+        </td>
+        <td>
+        <?php echo $user->email?>
+        </td>
+        <td>
+        <?php echo $user->date?>
+        </td>
+        <td>
+        <?php echo $user->time?>
+        </td>
+        </tr>
+       <?php } ?>
+        </tbody>
+
+    </table>
+</div>
+<?php }
+
+function css(){
+
+wp_enqueue_style("style-admin",get_bloginfo('stylesheet_directory')."/assets/css/mystyle.css");
+wp_enqueue_style('bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css');
+}
+add_action('admin_head', 'css');
+
+function js(){
+	wp_enqueue_script('newscript', get_template_directory_uri() . '/assets/js/custom.js');
+	wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-1.12.4.min.js', array(), NULL, false);
+	wp_enqueue_script('cloudflare', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.maskedinput/1.4.1/jquery.maskedinput.min.js', array(), NULL, false);
+	wp_enqueue_script('ajax', 'https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js', array(), NULL, false);
+	wp_enqueue_script('bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js', array(), NULL, false);
+
+
+}
+
+add_action( 'admin_head', 'js' );
+
+
+if(!empty($_POST['email'])){
+if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+if(!empty($_POST['last_name']) && !empty($_POST['name']) && !empty($_POST['patronymic']) && !empty($_POST['phone']) && !empty($_POST['email']) && !empty($_POST['date']) && !empty($_POST['time'])){
+   $wpdb->query( $wpdb->prepare( 
+	"
+		INSERT INTO users
+		(last_name, name, patronymic, phone, email, date, time )
+		VALUES ( %s, %s, %s, %s, %s, %s, %s )
+	", 
+	$_POST['last_name'], 
+	$_POST['name'], 
+	$_POST['patronymic'],
+	$_POST['phone'],
+	$_POST['email'],
+	$_POST['date'],
+	$_POST['time'] 
+) );
+wp_redirect( 'http://wordpress:8888/wp-admin/admin.php?page=form', 301  ); 
+exit;
+}
+}else{
+$_POST['email'] = 'Введите корректный email';
+}
+};
+
+
+
+
+ 
+
